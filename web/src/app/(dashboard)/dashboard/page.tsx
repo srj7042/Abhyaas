@@ -60,6 +60,7 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState<number>(0)
   const [xp, setXp] = useState<number>(0)
   const [readiness, setReadiness] = useState<number>(0)
+  const [overallProgress, setOverallProgress] = useState<number>(0)
   const [skillsMastered, setSkillsMastered] = useState<number>(0)
   const [weeklyHours, setWeeklyHours] = useState<number>(0)
   const [loading, setLoading] = useState(true)
@@ -234,10 +235,17 @@ export default function DashboardPage() {
       const activeModules = roadmapRes.data
         ? modulesData.filter((m: any) => m.roadmap_id === roadmapRes.data.id)
         : modulesData
+      const completed = activeModules.filter((m: any) => m.status === 'Completed').length
+      const total = activeModules.length
+      const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0
+      setOverallProgress(progressPercent)
+      
       const inProgress = activeModules.find((m: any) => m.status === 'In Progress')
       const targetMod = inProgress || activeModules[0]
       setCurrentModule(targetMod)
       if (targetMod) currentFocusModuleTitle = targetMod.title
+    } else {
+      setOverallProgress(0)
     }
 
     // Dynamic generation of missions
@@ -989,9 +997,9 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
               <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Overall Progress</p>
-              <p className="text-2xl font-bold text-white mt-1">45%</p>
+              <p className="text-2xl font-bold text-white mt-1">{overallProgress}%</p>
               <div className="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
-                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '45%' }} />
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${overallProgress}%` }} />
               </div>
             </div>
 
