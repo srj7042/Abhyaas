@@ -5,7 +5,7 @@ env/
 __pycache__/
 *.pyc
 
-# Node modules (just in case they run npm in root)
+# Node modules
 node_modules/
 
 # Environment files containing sensitive keys
@@ -14,12 +14,18 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
+.env*.mode
 
 # IDE configurations and system files
 .DS_Store
 .idea/
 .vscode/
+*.tsbuildinfo
 
 # Build artifacts
 dist/
 build/
+out/
+.next/
+
