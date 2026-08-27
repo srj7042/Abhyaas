@@ -125,4 +125,4 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 3. Link your Supabase project credentials to the Vercel environment variables.
 
 ### Live Demo URL Placeholder
-- **Live Site**: `[Website Link](https://abhyaas-lac.vercel.app/)`
+- **Live Site**: [Website Link](https://abhyaas-lac.vercel.app/)
