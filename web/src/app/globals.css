@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+:root {
+  /* Default Dark Theme Design Tokens */
+  --bg-color: #09090B;
+  --sidebar-color: #0F1117;
+  --surface-color: #14161F;
+  --elevated-color: #1B1E29;
+  --primary-accent: #6366F1;
+  --secondary-accent: #8B5CF6;
+  --success-color: #22C55E;
+  --warning-color: #F59E0B;
+  --error-color: #EF4444;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --border-color: #1E293B;
+  --border-hover: #334155;
+
+  --background: var(--bg-color);
+  --foreground: var(--text-primary);
+}
+
+[data-theme="light"] {
+  /* Premium Minimalist Light Theme Design Tokens */
+  --bg-color: #F8FAFC;
+  --sidebar-color: #FFFFFF;
+  --surface-color: #FFFFFF;
+  --elevated-color: #F1F5F9;
+  --primary-accent: #4F46E5;
+  --secondary-accent: #8B5CF6;
+  --success-color: #22C55E;
+  --warning-color: #F59E0B;
+  --error-color: #EF4444;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --border-color: #E2E8F0;
+  --border-hover: #CBD5E1;
+
+  --background: var(--bg-color);
+  --foreground: var(--text-primary);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Override Tailwind v4 color tokens to map dynamically to custom theme variables */
+  --color-slate-950: var(--bg-color);
+  --color-slate-900: var(--sidebar-color);
+  --color-slate-850: var(--surface-color);
+  --color-slate-800: var(--border-color);
+  --color-slate-700: var(--border-hover);
+  --color-slate-600: var(--text-secondary);
+  --color-slate-500: var(--text-secondary);
+  --color-slate-400: var(--text-secondary);
+  --color-slate-300: var(--text-primary);
+  --color-slate-100: var(--text-primary);
+
+  --color-blue-950: var(--bg-color);
+  --color-blue-900: var(--sidebar-color);
+  --color-blue-800: var(--border-color);
+  --color-blue-600: var(--primary-accent);
+  --color-blue-700: var(--primary-accent);
+  --color-blue-500: var(--primary-accent);
+  --color-blue-400: var(--primary-accent);
+
+  --color-green-500: var(--success-color);
+  --color-emerald-500: var(--success-color);
+  --color-orange-500: var(--warning-color);
+  --color-yellow-500: var(--warning-color);
+  --color-yellow-600: var(--warning-color);
+  --color-red-500: var(--error-color);
+  
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
+  --radius-3xl: 20px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Glassmorphic overlay card utility */
+.glass-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+/* Thin, modern rounded scrollbars for clean dashboards */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Micro-animations and hover transitions */
+a, button, input, select, textarea {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover lift effect for modern SaaS cards */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.15);
+}
+
+/* REDESIGN ACCESSIBILITY OVERRIDES:
+   Automatically adjust headings, bold tags, and hover classes to support theme variables. */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+}
+
+strong {
+  color: var(--text-primary) !important;
+}
+
+/* Ensure hover to white respects active theme colors */
+.hover\:text-white:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Recharts Concentric Polar Grids and Cartesian Grids */
+.recharts-polar-grid-angle line,
+.recharts-polar-grid-concentric path {
+  stroke: var(--border-color) !important;
+  opacity: 0.5;
+}
+
+.recharts-polar-angle-axis-key text {
+  fill: var(--text-secondary) !important;
+}
+
+.recharts-cartesian-grid-horizontal line, 
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border-color) !important;
+  opacity: 0.4;
+}
+
+.recharts-text {
+  fill: var(--text-secondary) !important;
+}
+
+.recharts-legend-item-text {
+  color: var(--text-primary) !important;
+}
+
+

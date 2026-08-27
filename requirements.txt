@@ -1,0 +1,30 @@
+# This is a Node.js / Next.js project. There are no Python dependencies to install.
+# All non-Python system and package requirements are commented out so that
+# `pip install -r requirements.txt` succeeds without errors.
+
+# System Requirements
+# Node.js >= 18.0.0 (Recommended: v26.5.0)
+# NPM >= 9.0.0 (Recommended: v11.17.0)
+
+# Project Dependencies (Node/NPM - installed via package.json)
+# next == 16.3.2
+# react == 19.2.8
+# react-dom == 19.2.8
+# @google/genai == 2.18.0
+# @supabase/supabase-js == 2.112.4
+# @supabase/ssr == 0.12.4
+# recharts == 3.10.1
+# clsx == 2.1.1
+# lucide-react == 1.34.0
+# tailwind-merge == 3.6.0
+
+# External Services & Database
+# Supabase (Auth & PostgreSQL Database)
+# Google Gemini AI API (for roadmap generation & tutoring)
+
+# Environment Variables Configured in .env
+# VITE_SUPABASE_URL=your-supabase-project-url
+# VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+# GEMINI_API_KEY=your-gemini-api-key
+# SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+# DATABASE_URL=your-database-connection-string
