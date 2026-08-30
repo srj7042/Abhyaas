@@ -29,3 +29,12 @@ build/
 out/
 .next/
 
+.vercel
+.env
+.env.local
+.env.*
+.env*.local
+
+# Scratch and temporary folders
+scratch/
+web/scratch/

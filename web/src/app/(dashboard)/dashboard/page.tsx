@@ -23,6 +23,7 @@ import {
   RefreshCw,
   Edit2
 } from 'lucide-react'
+import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import dynamic from 'next/dynamic'
 import { checkAndGenerateMissions } from '@/components/missions/missionsGenerator'
 import { recalculateCareerReadiness } from '@/components/readiness/readinessCalculator'
@@ -87,6 +88,7 @@ export default function DashboardPage() {
   ])
   const [generating, setGenerating] = useState(false)
   const [generatedRoadmap, setGeneratedRoadmap] = useState<any>(null)
+  const [proposedRoadmap, setProposedRoadmap] = useState<any>(null)
 
   // Manual Questionnaire States
   const [manualStep, setManualStep] = useState(1)
@@ -313,8 +315,12 @@ export default function DashboardPage() {
         // Look for JSON block in markdown
         const jsonMatch = data.response.match(/```json\s*([\s\S]*?)\s*```/)
         if (jsonMatch && jsonMatch[1]) {
-          const parsed = JSON.parse(jsonMatch[1])
-          setGeneratedRoadmap(parsed)
+          try {
+            const parsed = JSON.parse(jsonMatch[1])
+            setProposedRoadmap(parsed)
+          } catch (e) {
+            console.error("Failed to parse proposed roadmap JSON", e)
+          }
         }
       }
     } catch (err) {
@@ -691,7 +697,11 @@ export default function DashboardPage() {
                     <div className={`p-4 rounded-xl text-xs leading-relaxed max-w-md ${
                       m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-850 text-slate-350'
                     }`}>
-                      {m.content}
+                      {m.role === 'user' ? (
+                        m.content
+                      ) : (
+                        <MarkdownRenderer content={m.content} />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -706,6 +716,32 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
+
+              {proposedRoadmap && (
+                <div className="bg-blue-600/10 border border-blue-500/20 p-4 rounded-xl space-y-3 animate-fade-in">
+                  <div className="flex items-center gap-2 text-xs text-blue-400 font-semibold">
+                    <Sparkles size={14} className="animate-pulse" />
+                    <span>Roadmap proposal ready for "{proposedRoadmap.target_career}" ({proposedRoadmap.duration})!</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setGeneratedRoadmap(proposedRoadmap)
+                        setProposedRoadmap(null)
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-[10px] md:text-xs transition shadow-md shadow-blue-650/15 cursor-pointer"
+                    >
+                      Create Roadmap
+                    </button>
+                    <button
+                      onClick={() => setProposedRoadmap(null)}
+                      className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-350 hover:text-white font-semibold px-4 py-2 rounded-lg text-[10px] md:text-xs transition cursor-pointer"
+                    >
+                      Continue Chat without Creating Roadmap
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Suggestions */}
               {chatMessages.length === 1 && (

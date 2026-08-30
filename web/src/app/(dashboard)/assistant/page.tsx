@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/client'
 import { useState, useRef, useEffect } from 'react'
 import { Bot, Send, User, Sparkles, AlertCircle } from 'lucide-react'
+import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 
 export default function AssistantPage() {
   const supabase = createClient()
@@ -127,7 +128,11 @@ export default function AssistantPage() {
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-650/10' 
                 : 'bg-slate-950/60 text-slate-300 border border-slate-850'
             }`}>
-              {m.content}
+              {m.role === 'user' ? (
+                m.content
+              ) : (
+                <MarkdownRenderer content={m.content} />
+              )}
             </div>
             {m.role === 'user' && (
               <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">

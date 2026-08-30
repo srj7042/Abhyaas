@@ -23,6 +23,7 @@ import { getFallbackContent, type GeneratedTutorContent } from '@/components/tut
 import { recordXpTransaction } from '@/components/training/statsHelper'
 import { triggerMissionCompletion } from '@/components/missions/missionsGenerator'
 import { recalculateCareerReadiness } from '@/components/readiness/readinessCalculator'
+import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 
 type TutorMode = 'explain' | 'socratic' | 'exam' | 'interview' | 'debug' | 'revision' | 'mentor'
 
@@ -580,7 +581,11 @@ function TutorPageContent() {
               {visibleMessages.map((m, i) => (
                 <div key={i} className={`flex gap-3 text-xs ${m.role === 'user' ? 'justify-end' : ''}`}>
                   <div className={`p-3 rounded-xl max-w-md ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-950 text-slate-300 border border-slate-850'}`}>
-                    {m.content}
+                    {m.role === 'user' ? (
+                      m.content
+                    ) : (
+                      <MarkdownRenderer content={m.content} />
+                    )}
                   </div>
                 </div>
               ))}
@@ -699,7 +704,11 @@ function TutorPageContent() {
               {visibleMessages.map((m, i) => (
                 <div key={i} className={`flex gap-3 text-xs ${m.role === 'user' ? 'justify-end' : ''}`}>
                   <div className={`p-3 rounded-xl max-w-md ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-950 text-slate-300 border border-slate-850'}`}>
-                    {m.content}
+                    {m.role === 'user' ? (
+                      m.content
+                    ) : (
+                      <MarkdownRenderer content={m.content} />
+                    )}
                   </div>
                 </div>
               ))}

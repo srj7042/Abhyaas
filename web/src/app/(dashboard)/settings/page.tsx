@@ -18,10 +18,26 @@ import {
 
 type SettingsSection = 'profile' | 'preferences' | 'goal' | 'notifications' | 'security' | 'account'
 
+const CAREER_GOALS = [
+  "Software Engineer",
+  "Frontend Engineer",
+  "Backend Engineer",
+  "Fullstack Engineer",
+  "AI Engineer",
+  "ML Engineer",
+  "Data Scientist",
+  "DevOps Engineer",
+  "Mobile App Developer",
+  "Cloud Architect",
+  "Cybersecurity Analyst"
+]
+
 export default function SettingsPage() {
   const supabase = createClient()
   const [activeTab, setActiveTab] = useState<SettingsSection>('profile')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
   const [showGoalNotification, setShowGoalNotification] = useState(false)
   
   // Profile / Form States (initialized to empty or initial default states, then hydrated from DB)
@@ -116,23 +132,146 @@ export default function SettingsPage() {
     }
   }
 
-  const handleGoalUpdate = async (e: React.FormEvent) => {
+  const handleGoalSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setShowConfirmModal(true)
+  }
+
+  const handleGoalUpdate = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        target_career: targetCareer,
-      })
-      .eq('id', session.user.id)
+    setRegenerating(true)
+    try {
+      // 1. Generate roadmap via Gemini
+      const prompt = `
+        Build a personalized learning path based on this profile:
+        - Target Career: ${targetCareer}
+        - Experience Level: ${experienceLevel}
+        - Weekly study budget: ${weeklyHours} hours
+        - Learning Preference: ${learningPreference}
 
-    if (error) {
-      alert("Error updating goal: " + error.message)
-    } else {
+        Respond ONLY with a JSON block inside triple backticks (\`\`\`json ... \`\`\`) in the exact format:
+        {
+          "target_career": "${targetCareer}",
+          "duration": "5 Months",
+          "weekly_hours": ${weeklyHours},
+          "level": "${experienceLevel}",
+          "skills": [
+            {"name": "Skill 1", "status": "Mastered"},
+            {"name": "Skill 2", "status": "30%"}
+          ],
+          "phases": [
+            {
+              "title": "Phase 1: Foundations",
+              "description": "Short explanation of phase.",
+              "duration": "4 weeks",
+              "milestone": "Milestone description",
+              "topics": ["Topic 1"],
+              "projects": ["Project 1"]
+            }
+          ]
+        }
+      `
+
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to communicate with AI')
+      }
+
+      const jsonMatch = data.response.match(/```json\s*([\s\S]*?)\s*```/)
+      if (!jsonMatch || !jsonMatch[1]) {
+        throw new Error('AI response did not contain a valid JSON roadmap block')
+      }
+
+      const generated = JSON.parse(jsonMatch[1])
+
+      // 2. Database updates
+      const userId = session.user.id
+
+      // a. Update Profile Career Target
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          target_career: generated.target_career,
+          weekly_hours: generated.weekly_hours,
+          experience_level: generated.level.toLowerCase()
+        })
+        .eq('id', userId)
+
+      if (profileError) throw profileError
+
+      // b. Archive old roadmaps
+      const { error: archiveError } = await supabase
+        .from('roadmaps')
+        .update({ status: 'archived' })
+        .eq('user_id', userId)
+
+      if (archiveError) throw archiveError
+
+      // c. Create learning goal
+      const { data: goalData, error: goalError } = await supabase
+        .from('learning_goals')
+        .insert({
+          user_id: userId,
+          goal_text: `Become a professional ${generated.target_career}`,
+          target_role: generated.target_career,
+          weekly_commitment: generated.weekly_hours,
+          difficulty_preference: generated.level.toLowerCase()
+        })
+        .select()
+        .single()
+
+      if (goalError) throw goalError
+
+      // d. Create new roadmap
+      const { data: rdData, error: rdError } = await supabase
+        .from('roadmaps')
+        .insert({
+          user_id: userId,
+          goal_id: goalData.id,
+          title: `${generated.target_career} Learning Track`,
+          description: `Custom curriculum for ${generated.target_career}`,
+          target_role: generated.target_career,
+          estimated_duration: generated.duration
+        })
+        .select()
+        .single()
+
+      if (rdError) throw rdError
+
+      // e. Insert modules
+      const moduleInserts = generated.phases.map((phase: any, index: number) => ({
+        roadmap_id: rdData.id,
+        user_id: userId,
+        title: phase.title,
+        description: phase.description,
+        order_index: index + 1,
+        duration: phase.duration,
+        milestone: phase.milestone,
+        status: index === 0 ? 'In Progress' : 'Locked'
+      }))
+
+      const { error: moduleError } = await supabase
+        .from('roadmap_modules')
+        .insert(moduleInserts)
+
+      if (moduleError) throw moduleError
+
       setShowGoalNotification(true)
       setTimeout(() => setShowGoalNotification(false), 4000)
+
+    } catch (err: any) {
+      console.error('Goal update error:', err)
+      alert("Failed to update goal: " + (err.message || err))
+    } finally {
+      setRegenerating(false)
     }
   }
 
@@ -158,6 +297,15 @@ export default function SettingsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <span className="text-sm text-slate-500 animate-pulse">Loading settings panel...</span>
+      </div>
+    )
+  }
+
+  if (regenerating) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm text-slate-400 animate-pulse font-medium">Regenerating your personalized AI learning roadmap...</span>
       </div>
     )
   }
@@ -401,17 +549,22 @@ export default function SettingsPage() {
               </div>
 
               {/* Goal Update Form */}
-              <form onSubmit={handleGoalUpdate} className="space-y-4 pt-4 border-t border-slate-850">
+              <form onSubmit={handleGoalSubmit} className="space-y-4 pt-4 border-t border-slate-850">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Target Career</label>
-                    <input 
-                      type="text" 
+                    <select 
                       value={targetCareer} 
                       onChange={e => setTargetCareer(e.target.value)} 
-                      placeholder="e.g. AI Engineer, Software Architect..."
-                      className="w-full bg-slate-950/50 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition" 
-                    />
+                      className="w-full bg-slate-950/50 border border-slate-800 text-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
+                    >
+                      <option value="" disabled>Select Career Goal</option>
+                      {(CAREER_GOALS.includes(targetCareer) ? CAREER_GOALS : (targetCareer ? [...CAREER_GOALS, targetCareer] : CAREER_GOALS)).map((g) => (
+                        <option key={g} value={g} className="bg-slate-900 text-slate-200">
+                          {g}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Target Deadline</label>
@@ -585,6 +738,44 @@ export default function SettingsPage() {
                 className="flex-1 bg-red-650 hover:bg-red-750 text-white font-bold py-3 rounded-xl transition"
               >
                 Yes, Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Goal Update Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-6 relative overflow-hidden shadow-2xl">
+            <div className="text-center space-y-3">
+              <div className="inline-flex p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-blue-500 mb-2">
+                <Target size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-white">Regenerate Roadmap?</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Are you sure you want to change your career goal to <strong className="text-white">"{targetCareer}"</strong>? 
+                This will regenerate and replace your current learning roadmap. Your existing progress will be archived.
+              </p>
+            </div>
+            
+            <div className="flex gap-3 text-xs">
+              <button 
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl transition border border-slate-700 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={() => {
+                  setShowConfirmModal(false)
+                  handleGoalUpdate()
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition cursor-pointer"
+              >
+                Yes, Regenerate
               </button>
             </div>
           </div>
