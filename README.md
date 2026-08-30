@@ -119,19 +119,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 
 ---
 
-## 🌐 Deployment Instructions
-
-### Frontend & API (Vercel)
-1. Push your codebase to a private/public GitHub repository (ensure `.env.local` is **not** committed).
-2. Create a new project in [Vercel](https://vercel.com).
-3. Connect your repository and select the `web` folder as the root directory.
-4. Add the environment variables from your `.env.local` to the Vercel project settings.
-5. Click **Deploy**.
-
 ### Database (Supabase)
 1. Setup a project on [Supabase](https://supabase.com).
 2. Go to the SQL Editor and apply schemas from the `supabase/migrations` folder.
 3. Link your Supabase project credentials to the Vercel environment variables.
 
 ### Live Demo URL Placeholder
-- **Live Site**: `https://abhyaas-demo-placeholder.vercel.app`
+- **Live Site**: [Website Link](https://abhyaas-lac.vercel.app/)
